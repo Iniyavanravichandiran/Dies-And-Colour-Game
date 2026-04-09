@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Territory War - Responsive Blast</title>
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --primary-blue: #58a6ff;
+            --success-green: #238636;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-dark);
+            color: #c9d1d9;
+            margin: 0;
+            padding: 10px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* Container adjusts width based on screen */
+        .container {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            border: 1px solid var(--border-color);
+            width: 95%;
+            max-width: 500px;
+            margin: auto;
+        }
+
+        /* Registration UI */
+        #registration {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-dark);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        input[type="text"] {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 8px;
+            border-radius: 5px;
+            width: 60%;
+        }
+
+        /* RESPONSIVE GRID */
+        #gameArea {
+            display: none;
+            width: 100%;
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            /* 8 equal columns */
+            gap: 4px;
+            margin: 15px auto;
+            border: 2px solid var(--border-color);
+            padding: 6px;
+            background: #000;
+            width: 100%;
+            max-width: 400px;
+            /* Limits size on big screens */
+            aspect-ratio: 1 / 1;
+            /* Keeps it square */
+            box-sizing: border-box;
+        }
+
+        .cell {
+            background-color: #21262d;
+            border-radius: 15%;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .cell:active {
+            transform: scale(0.9);
+        }
+
+        .cell.taken {
+            cursor: not-allowed;
+        }
+
+        /* Scoring & Dice */
+        .status-bar {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        #dice-val {
+            font-size: 3rem;
+            margin: 5px;
+            height: 60px;
+            color: var(--primary-blue);
+            font-weight: 900;
+        }
+
+        .btn-main {
+            padding: 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background: var(--success-green);
+            color: white;
+            font-weight: bold;
+            width: 100%;
+            touch-action: manipulation;
+            /* Faster response on mobile */
+        }
+
+        /* OVERLAYS */
+        #winnerOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 17, 23, 0.98);
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .blast-text {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 10px;
+            animation: zoomBlast 0.5s infinite alternate;
+        }
+
+        @keyframes zoomBlast {
+            from {
+                transform: scale(1);
+            }
+
+            to {
+                transform: scale(1.05);
+            }
+        }
+
+        /* Media Queries for very small phones */
+        @media (max-width: 360px) {
+            .status-bar {
+                font-size: 0.8rem;
+            }
+
+            .blast-text {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div id="registration">
+            <h2 style="color:var(--primary-blue); margin-top:0;">EGOIST WAR ⚔️</h2>
+            <div class="input-group">
+                <input type="text" id="p1Name" placeholder="P1 Name" value="Iniyavan">
+                <input type="color" id="p1Color" value="#58a6ff">
+            </div>
+            <div class="input-group">
+                <input type="text" id="p2Name" placeholder="P2 Name" value="Challenger">
+                <input type="color" id="p2Color" value="#ff7b72">
+            </div>
+            <button class="btn-main" onclick="startGame()">START WAR</button>
+        </div>
+
+        <div id="gameArea">
+            <div class="status-bar">
+                <div id="p1ScoreLabel"></div>
+                <div id="p2ScoreLabel"></div>
+            </div>
+            <div id="turnIndicator"><span id="activePlayerName" style="font-weight: 800; font-size: 1.4rem;"></span>'S
+                TURN</div>
+            <div id="dice-val">🎲</div>
+            <button id="rollBtn" class="btn-main">ROLL DICE</button>
+            <div id="message" style="margin-top: 10px; color: #8b949e; min-height: 1.2em;">Roll to start!</div>
+            <div id="grid"></div>
+        </div>
+    </div>
+
+    <div id="winnerOverlay">
+        <div style="font-size: 1.5rem; color: #ff7b72; font-weight: bold;">BLAST TU BLAST TUU 💥</div>
+        <h1 id="winnerTitle" class="blast-text">WINNER!</h1>
+        <p id="winnerScore" style="font-size: 1.5rem; color: white;"></p>
+        <button class="btn-main" style="width: auto; padding: 15px 50px; margin-top: 30px;"
+            onclick="location.reload()">REMATCH</button>
+    </div>
+
+    <script>
+        let p1 = { name: "", color: "", score: 0 };
+        let p2 = { name: "", color: "", score: 0 };
+        let turn = 1, rollsLeft = 0, cellsClaimed = 0;
+        const totalCells = 64;
+
+        function startGame() {
+            p1.name = document.getElementById('p1Name').value || "P1";
+            p2.name = document.getElementById('p2Name').value || "P2";
+            p1.color = document.getElementById('p1Color').value;
+            p2.color = document.getElementById('p2Color').value;
+            document.getElementById('registration').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            initGrid();
+            updateUI();
+        }
+
+        function initGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < totalCells; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.onclick = () => claimCell(cell);
+                grid.appendChild(cell);
+            }
+        }
+
+        document.getElementById('rollBtn').onclick = function () {
+            let roll = Math.floor(Math.random() * 6) + 1;
+            const remaining = totalCells - cellsClaimed;
+            rollsLeft = Math.min(roll, remaining);
+            document.getElementById('dice-val').innerText = rollsLeft;
+            document.getElementById('message').innerText = `Touch ${rollsLeft} squares!`;
+            this.disabled = true;
+        };
+
+        function claimCell(cell) {
+            if (rollsLeft > 0 && !cell.classList.contains('taken')) {
+                const active = turn === 1 ? p1 : p2;
+                cell.style.backgroundColor = active.color;
+                cell.style.boxShadow = `0 0 12px ${active.color}`;
+                cell.classList.add('taken');
+
+                active.score++;
+                cellsClaimed++;
+                rollsLeft--;
+                updateUI();
+
+                if (cellsClaimed >= totalCells) {
+                    announceWinner();
+                    return;
+                }
+
+                if (rollsLeft === 0) {
+                    turn = (turn === 1) ? 2 : 1;
+                    document.getElementById('rollBtn').disabled = false;
+                    document.getElementById('message').innerText = `Roll the Dice!`;
+                    updateUI();
+                } else {
+                    document.getElementById('message').innerText = `${rollsLeft} more to go...`;
+                }
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('p1ScoreLabel').innerHTML = `<span style="color:${p1.color}">${p1.name}:</span> ${p1.score}`;
+            document.getElementById('p2ScoreLabel').innerHTML = `<span style="color:${p2.color}">${p2.name}:</span> ${p2.score}`;
+            const active = turn === 1 ? p1 : p2;
+            const nameDisp = document.getElementById('activePlayerName');
+            nameDisp.innerText = active.name.toUpperCase();
+            nameDisp.style.color = active.color;
+        }
+
+        function announceWinner() {
+            const overlay = document.getElementById('winnerOverlay');
+            const title = document.getElementById('winnerTitle');
+            overlay.style.display = 'flex';
+            if (p1.score > p2.score) { title.innerText = `${p1.name.toUpperCase()} WINS!`; title.style.color = p1.color; }
+            else if (p2.score > p1.score) { title.innerText = `${p2.name.toUpperCase()} WINS!`; title.style.color = p2.color; }
+            else { title.innerText = "DRAW!"; }
+            document.getElementById('winnerScore').innerText = `${p1.score} vs ${p2.score}`;
+        }
+    </script>
+</body>
+
+</html>
